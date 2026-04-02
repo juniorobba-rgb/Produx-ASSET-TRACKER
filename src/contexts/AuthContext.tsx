@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as FirebaseUser, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
-import { auth, db, loginWithGoogle, loginEmail, registerEmail, logout, handleFirestoreError, OperationType } from '../firebase';
+import { auth, db, loginEmail, registerEmail, logout, handleFirestoreError, OperationType } from '../firebase';
 
 export interface UserProfile {
   uid: string;
@@ -15,7 +15,6 @@ interface AuthContextType {
   user: FirebaseUser | null;
   profile: UserProfile | null;
   loading: boolean;
-  loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -126,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, loginWithGoogle, loginWithEmail: handleEmailLogin, logout }}>
+    <AuthContext.Provider value={{ user, profile, loading, loginWithEmail: handleEmailLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
