@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const newProfile: UserProfile = {
                 uid: currentUser.uid,
                 email: currentUser.email || '',
-                displayName: currentUser.displayName || 'Anonymous',
+                displayName: isFirstAdmin ? 'JUN OH' : (currentUser.displayName || 'Anonymous'),
                 role: isFirstAdmin ? 'admin' : 'user',
                 createdAt: new Date().toISOString(),
               };
@@ -111,6 +111,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       // If user not found or invalid credential, check if they are pre-authorized by admin
       if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        // Admin auto-registration
+        if (email.toLowerCase() === 'junior.obba@gmail.com' && pass === 'admin') {
+          await registerEmail(email, pass);
+          return;
+        }
+
         const userRef = doc(db, 'users', email.toLowerCase());
         const docSnap = await getDoc(userRef);
         

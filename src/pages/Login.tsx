@@ -6,19 +6,23 @@ import { Button } from '../components/ui/Button';
 
 export function Login() {
   const { loginWithEmail } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('1234');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
+    if (!identifier.trim() || !password.trim()) return;
     
     setError('');
     setIsLoading(true);
     try {
-      await loginWithEmail(email.trim(), password);
+      let loginEmail = identifier.trim();
+      if (loginEmail === 'JUN OH') {
+        loginEmail = 'junior.obba@gmail.com';
+      }
+      await loginWithEmail(loginEmail, password);
     } catch (err: any) {
       console.error(err);
       setError('Email ou mot de passe incorrect.');
@@ -50,12 +54,12 @@ export function Login() {
               </div>
             )}
             <div className="space-y-2">
-              <label className="text-xs font-medium text-slate-400">Email</label>
+              <label className="text-xs font-medium text-slate-400">Identifiant</label>
               <Input 
-                type="email" 
-                placeholder="votre@email.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text" 
+                placeholder="JUN OH ou email" 
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
               />
             </div>
