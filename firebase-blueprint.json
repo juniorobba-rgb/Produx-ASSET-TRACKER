@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the SaaS platform",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "AssetType": {
+      "title": "Asset Type",
+      "description": "A category of asset defined by the admin",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "defaultPrice": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "defaultPrice"]
+    },
+    "Asset": {
+      "title": "Asset",
+      "description": "A production asset being tracked",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "typeId": { "type": "string" },
+        "typeName": { "type": "string" },
+        "price": { "type": "number" },
+        "status": { "type": "string", "enum": ["En cours", "Correction", "Validé"] },
+        "assignedUserId": { "type": "string" },
+        "assignedUserName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "typeId", "typeName", "price", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles and roles"
+    },
+    "/assetTypes/{assetTypeId}": {
+      "schema": { "$ref": "#/entities/AssetType" },
+      "description": "Stores asset types and their pricing"
+    },
+    "/assets/{assetId}": {
+      "schema": { "$ref": "#/entities/Asset" },
+      "description": "Stores production assets. The document ID is the normalized asset name to ensure uniqueness."
+    }
+  }
+}
