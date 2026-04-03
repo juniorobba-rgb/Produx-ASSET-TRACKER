@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await loginEmail(email, pass);
     } catch (error: any) {
-      // If user not found or invalid credential, check if they are pre-authorized by admin
+      // If user not found or invalid credential, try auto-registration
       if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
         // Admin auto-registration
         if (email.toLowerCase() === 'junior.obba@gmail.com' && pass === 'admin') {
@@ -117,13 +117,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const userRef = doc(db, 'users', email.toLowerCase());
-        const docSnap = await getDoc(userRef);
-        
-        // If admin created their profile and they use the default password, auto-register them
-        if (docSnap.exists() && pass === '1234') {
-          await registerEmail(email, pass);
-          return;
+        // For users using the default password, auto-register them.
+        // We cannot check Firestore here because we are not authenticated yet.
+        if (pass === '1234') {
+          try {
+            await registerEmail(email, pass);
+            return;
+          } catch (regError: any) {
+            if (regError.code === 'auth/email-already-in-use') {
+              throw new Error('auth/invalid-credential');
+            }
+            throw regError;
+          }
         }
       }
       throw error;

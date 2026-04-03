@@ -1,32 +1,21 @@
 {
   "entities": {
-    "User": {
-      "title": "User",
-      "description": "A user of the SaaS platform",
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
+        "email": { "type": "string" },
         "displayName": { "type": "string" },
         "role": { "type": "string", "enum": ["admin", "user"] },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string" }
       },
       "required": ["uid", "email", "role"]
     },
-    "AssetType": {
-      "title": "Asset Type",
-      "description": "A category of asset defined by the admin",
-      "type": "object",
-      "properties": {
-        "name": { "type": "string" },
-        "defaultPrice": { "type": "number" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["name", "defaultPrice"]
-    },
     "Asset": {
       "title": "Asset",
-      "description": "A production asset being tracked",
+      "description": "An asset to track",
       "type": "object",
       "properties": {
         "name": { "type": "string" },
@@ -34,26 +23,37 @@
         "typeName": { "type": "string" },
         "price": { "type": "number" },
         "status": { "type": "string", "enum": ["En cours", "Correction", "Validé"] },
-        "assignedUserId": { "type": "string" },
-        "assignedUserName": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "assignedUserId": { "type": ["string", "null"] },
+        "assignedUserName": { "type": ["string", "null"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
       },
-      "required": ["name", "typeId", "typeName", "price", "status", "createdAt", "updatedAt"]
+      "required": ["name", "typeId", "status"]
+    },
+    "AssetType": {
+      "title": "AssetType",
+      "description": "A type of asset",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "defaultPrice": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "defaultPrice"]
     }
   },
   "firestore": {
     "/users/{userId}": {
-      "schema": { "$ref": "#/entities/User" },
-      "description": "Stores user profiles and roles"
-    },
-    "/assetTypes/{assetTypeId}": {
-      "schema": { "$ref": "#/entities/AssetType" },
-      "description": "Stores asset types and their pricing"
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles"
     },
     "/assets/{assetId}": {
       "schema": { "$ref": "#/entities/Asset" },
-      "description": "Stores production assets. The document ID is the normalized asset name to ensure uniqueness."
+      "description": "Assets"
+    },
+    "/assetTypes/{assetTypeId}": {
+      "schema": { "$ref": "#/entities/AssetType" },
+      "description": "Asset types"
     }
   }
 }

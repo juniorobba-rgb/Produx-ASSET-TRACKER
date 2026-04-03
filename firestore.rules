@@ -1,104 +1,35 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
     
     function isAuthenticated() {
       return request.auth != null;
     }
-
+    
     function isAdmin() {
-      return isAuthenticated() &&
-        (
-          (exists(/databases/$(database)/documents/users/$(request.auth.token.email)) &&
-           get(/databases/$(database)/documents/users/$(request.auth.token.email)).data.role == 'admin') ||
-          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
-          (request.auth.token.email == "junior.obba@gmail.com")
-        );
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        request.auth.token.email == 'junior.obba@gmail.com'
+      );
     }
 
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
-    function hasOnlyAllowedFields(allowedFields) {
-      return request.resource.data.keys().hasOnly(allowedFields);
-    }
-
-    // ===============================================================
-    // Domain Validators
-    // ===============================================================
-
-    function isValidUser(data) {
-      return (!('uid' in data) || data.uid is string) && 
-             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
-             data.displayName is string && data.displayName.size() <= 100 &&
-             data.role in ['admin', 'user'] &&
-             data.createdAt is string;
-    }
-
-    function isValidAssetType(data) {
-      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
-             data.defaultPrice is number && data.defaultPrice >= 0 &&
-             data.createdAt is string;
-    }
-
-    function isValidAsset(data) {
-      return data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
-             data.typeId is string && data.typeId.size() > 0 &&
-             data.typeName is string && data.typeName.size() > 0 &&
-             data.price is number && data.price >= 0 &&
-             data.status in ['En cours', 'Correction', 'Validé'] &&
-             (!('assignedUserId' in data) || data.assignedUserId == null || data.assignedUserId is string) &&
-             (!('assignedUserName' in data) || data.assignedUserName == null || data.assignedUserName is string) &&
-             data.createdAt is string &&
-             data.updatedAt is string;
-    }
-
-    // ===============================================================
-    // Rules
-    // ===============================================================
-
-    match /users/{docId} {
+    match /users/{userId} {
       allow read: if isAuthenticated();
-      
-      allow create: if isAuthenticated() && 
-                    (
-                      (request.auth.token.email == docId && isValidUser(request.resource.data) && request.resource.data.role == 'user') || 
-                      (isAdmin() && isValidUser(request.resource.data))
-                    );
-                    
-      allow update: if isAuthenticated() && 
-                    isValidUser(request.resource.data) && 
-                    (
-                      (request.auth.token.email == docId && request.resource.data.role == resource.data.role) || 
-                      isAdmin()
-                    );
-                    
+      allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || request.auth.token.email == 'junior.obba@gmail.com');
+      allow update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
       allow delete: if isAdmin();
-    }
-
-    match /assetTypes/{typeId} {
-      allow read: if isAuthenticated();
-      allow create, update, delete: if isAdmin() && (request.method == 'delete' || isValidAssetType(request.resource.data));
     }
 
     match /assets/{assetId} {
       allow read: if isAuthenticated();
-      
-      allow create: if isAuthenticated() && 
-                    isValidAsset(request.resource.data);
-                    
-      allow update: if isAuthenticated() && 
-                    isValidAsset(request.resource.data) &&
-                    request.resource.data.name == resource.data.name; // Name cannot be changed
-                    
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
       allow delete: if isAdmin();
+    }
+
+    match /assetTypes/{assetTypeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
   }
 }
